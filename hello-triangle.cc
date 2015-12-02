@@ -83,17 +83,28 @@ int main() {
 		glGenVertexArrays(1, &VAO);
 		glBindVertexArray(VAO);
 
-		// Create VBO
 		GLfloat vertices[] = {
-			-0.5f, -0.5f, 0.0f,
-			0.5f, -0.5f, 0.0f,
-			0.0f,  0.5f, 0.0f
+       0.5f,  0.5f, 0.0f,
+       0.5f, -0.5f, 0.0f,
+      -0.5f,  0.5f, 0.0f,
+      -0.5f, -0.5f, 0.0f
 		};
+    GLuint ixs[] = {
+      0, 1, 2, // Right triangle
+      1, 2, 3  // Left triangle
+    };
 
+		// Create VBO
 		GLuint VBO;
 		glGenBuffers(1, &VBO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // Create EBO
+    GLuint EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ixs), ixs, GL_STATIC_DRAW);
 
 		// Link vertices
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
@@ -105,6 +116,8 @@ int main() {
 		// Unbind VAO
 		glBindVertexArray(0);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     gl.loop([shaderProgram, VAO] {
 			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -114,13 +127,14 @@ int main() {
 
 			// Draw a triangle
 			glBindVertexArray(VAO);
-			glDrawArrays(GL_TRIANGLES, 0, 3);
+      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
     });
 
 		// Cleanup
 		glDeleteVertexArrays(1, &VAO);
 		glDeleteBuffers(1, &VBO);
+		glDeleteBuffers(1, &EBO);
   } catch (GL::gl_exception& e) {
     std::cerr << e.what();
     return -1;
