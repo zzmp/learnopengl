@@ -7,5 +7,8 @@ default: build/hello-window
 clean:
 	rm -rf build/*
 
-build/hello-window: hello-window.cc build
-	$(CC) $(CCFLAGS) $(GLFLAGS) -o $@ $<
+build/gl.o: gl.cc
+	$(CC) $(CCFLAGS) -c -o $@ $^
+
+build/hello-window: hello-window.cc build/gl.o
+	$(CC) $(CCFLAGS) $(GLFLAGS) -o $@ $^
