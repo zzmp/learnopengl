@@ -51,3 +51,46 @@ GLFWwindow* GL::window(GLuint width, GLuint height, std::string title) {
 
   return window;
 }
+
+Shader::Shader(std::string source, int type) {
+  _shader = glCreateShader(type);
+  const char* src = source.c_str();
+  glShaderSource(_shader, 1, &src, nullptr);
+  glCompileShader(_shader);
+
+  GLint success;
+  glGetShaderiv(_shader, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    GLchar info[512];
+    glGetShaderInfoLog(_shader, 512, nullptr, info);
+    throw compile_exception {info};
+  }
+}
+
+Shader::~Shader() {
+  glDeleteShader(_shader);
+}
+
+Program::Program() {
+  _program = glCreateProgram();
+}
+
+void Program::attach(Shader shader) {
+  glAttachShader(_program, shader._shader);
+}
+
+void Program::link() {
+  glLinkProgram(_program);
+
+  GLint success;
+  glGetProgramiv(_program, GL_LINK_STATUS, &success);
+  if (!success) {
+    GLchar info[512];
+    glGetProgramInfoLog(_program, 512, nullptr, info);
+    throw link_exception {info};
+  }
+}
+
+void Program::use() {
+  glUseProgram(_program);
+}

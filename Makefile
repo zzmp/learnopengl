@@ -7,8 +7,8 @@ default: build/hello-triangle
 clean:
 	rm -rf build/*
 
-build/gl.o: gl.cc
-	$(CC) $(CCFLAGS) -c -o $@ $^
+build/gl.o: gl.cc gl.h
+	$(CC) $(CCFLAGS) -c -o $@ $<
 
 build/hello-window: hello-window.cc build/gl.o
 	$(CC) $(CCFLAGS) $(GLFLAGS) -o $@ $^

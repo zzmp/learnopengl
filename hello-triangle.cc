@@ -2,7 +2,7 @@
 
 #include "gl.h"
 
-const GLchar* vertexShaderSource = R"(
+const std::string vertexShaderSource = R"(
 #version 330 core
 
 layout (location = 0) in vec3 position;
@@ -13,7 +13,7 @@ void main()
 }
 )";
 
-const GLchar* greenFragmentShaderSource = R"(
+const std::string greenFragmentShaderSource = R"(
 #version 330 core
 
 out vec4 color;
@@ -24,7 +24,7 @@ void main()
 }
 )";
 
-const GLchar* yellowFragmentShaderSource = R"(
+const std::string yellowFragmentShaderSource = R"(
 #version 330 core
 
 out vec4 color;
@@ -43,73 +43,19 @@ int main() {
 
     gl.setKeyCallback(keyCallback);
 
-		// Dynamically compile the shaders
-		GLint success;
-		GLchar infoLog[512];
+    Shader vertexShader {vertexShaderSource, GL_VERTEX_SHADER};
+    Shader greenShader {greenFragmentShaderSource, GL_FRAGMENT_SHADER};
+    Shader yellowShader {yellowFragmentShaderSource, GL_FRAGMENT_SHADER};
 
-		// Dynamically compile vertex shader
-		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-		glCompileShader(vertexShader);
+    Program greenProgram {};
+    greenProgram.attach(vertexShader);
+    greenProgram.attach(greenShader);
+    greenProgram.link();
 
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-		if(!success) {
-			glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-			std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-			return -1;
-		}
-
-		// Dynamically compile fragment shaders
-		GLuint greenFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(greenFragmentShader, 1, &greenFragmentShaderSource, nullptr);
-		glCompileShader(greenFragmentShader);
-
-		glGetShaderiv(greenFragmentShader, GL_COMPILE_STATUS, &success);
-		if(!success) {
-			glGetShaderInfoLog(greenFragmentShader, 512, NULL, infoLog);
-			std::cerr << "ERROR::SHADER::GFRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-			return -1;
-		}
-
-    GLuint yellowFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(yellowFragmentShader, 1, &yellowFragmentShaderSource, nullptr);
-		glCompileShader(yellowFragmentShader);
-
-		glGetShaderiv(yellowFragmentShader, GL_COMPILE_STATUS, &success);
-		if(!success) {
-			glGetShaderInfoLog(yellowFragmentShader, 512, NULL, infoLog);
-			std::cerr << "ERROR::SHADER::YFRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-			return -1;
-		}
-
-		// Create shader programs
-		GLuint greenShaderProgram = glCreateProgram();
-		glAttachShader(greenShaderProgram, vertexShader);
-		glAttachShader(greenShaderProgram, greenFragmentShader);
-		glLinkProgram(greenShaderProgram);
-
-		glGetProgramiv(greenShaderProgram, GL_LINK_STATUS, &success);
-		if(!success) {
-			glGetProgramInfoLog(greenShaderProgram, 512, NULL, infoLog);
-			std::cerr << "ERROR::SHADER::GPROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-			return -1;
-		}
-
-    GLuint yellowShaderProgram = glCreateProgram();
-		glAttachShader(yellowShaderProgram, vertexShader);
-		glAttachShader(yellowShaderProgram, yellowFragmentShader);
-		glLinkProgram(yellowShaderProgram);
-
-		glGetProgramiv(yellowShaderProgram, GL_LINK_STATUS, &success);
-		if(!success) {
-			glGetProgramInfoLog(yellowShaderProgram, 512, NULL, infoLog);
-			std::cerr << "ERROR::SHADER::YPROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-			return -1;
-		}
-
-		glDeleteShader(vertexShader);
-		glDeleteShader(greenFragmentShader);
-		glDeleteShader(yellowFragmentShader);
+    Program yellowProgram {};
+    yellowProgram.attach(vertexShader);
+    yellowProgram.attach(yellowShader);
+    yellowProgram.link();
 
 		GLfloat lVertices[] = {
       -0.5f,  0.5f, 0.0f,
@@ -156,17 +102,16 @@ int main() {
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    gl.loop([greenShaderProgram, yellowShaderProgram, lVAO, rVAO] {
+    gl.loop([&greenProgram, &yellowProgram, lVAO, rVAO] {
 			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-
 			// Draw a triangle
 			glBindVertexArray(lVAO);
-			glUseProgram(greenShaderProgram);
+      greenProgram.use();
       glDrawArrays(GL_TRIANGLES, 0, 3);
 			glBindVertexArray(rVAO);
-			glUseProgram(yellowShaderProgram);
+      yellowProgram.use();
       glDrawArrays(GL_TRIANGLES, 0, 3);
 			glBindVertexArray(0);
     });
@@ -176,7 +121,7 @@ int main() {
 		glDeleteBuffers(1, &lVBO);
 		glDeleteVertexArrays(1, &rVAO);
 		glDeleteBuffers(1, &rVBO);
-  } catch (GL::gl_exception& e) {
+  } catch (gl_exception const& e) {
     std::cerr << e.what();
     return -1;
   }
