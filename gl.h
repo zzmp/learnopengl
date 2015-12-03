@@ -58,6 +58,8 @@ class Program {
     void link();
     void use();
 
+    GLint getUniform(std::string uniform);
+
   private:
     GLuint _program;
 };

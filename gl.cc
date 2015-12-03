@@ -94,3 +94,7 @@ void Program::link() {
 void Program::use() {
   glUseProgram(_program);
 }
+
+GLint Program::getUniform(std::string uniform) {
+  return glGetUniformLocation(_program, uniform.c_str());
+}
